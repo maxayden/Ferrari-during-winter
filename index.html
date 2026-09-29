@@ -1,0 +1,812 @@
+<title>Ferrari During Winter</title>
+<style>
+  :root{
+    --ink:#000000;
+    --paper:#ffffff;
+    --surface:#ffffff;
+    --field-bg:#f5f5f5;
+    --line:#e5e5e5;
+    --accent:#d2001c;
+    --accent-ink:#ffffff;
+    --muted:#6e6e73;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ink:#f2f1ef;
+      --paper:#0a0a0b;
+      --surface:#151516;
+      --field-bg:#1e1e20;
+      --line:#2c2c2e;
+      --accent:#ff3b30;
+      --accent-ink:#ffffff;
+      --muted:#9c9c9f;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ink:#f2f1ef;
+    --paper:#0a0a0b;
+    --surface:#151516;
+    --field-bg:#1e1e20;
+    --line:#2c2c2e;
+    --accent:#ff3b30;
+    --accent-ink:#ffffff;
+    --muted:#9c9c9f;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-inline:0;
+  }
+  h1,h2,h3{text-wrap:balance; margin:0;}
+  p{margin:0;}
+  button{font-family:inherit;}
+  input,select{font-family:inherit;}
+
+  .eyebrow{
+    font-size:.72rem;
+    font-weight:600;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+
+  /* ---------- Bookend screens (gate + thanks) ---------- */
+  .bookend{
+    min-height:100svh;
+    background:var(--paper);
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:48px 20px;
+    gap:28px;
+  }
+  .crest{
+    height:40px;
+    display:flex;align-items:center;justify-content:center;
+    flex-shrink:0;
+  }
+  .crest img{ height:100%; width:auto; display:block; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]) .crest img,
+    :root:not([data-theme="light"]) .tb-logo{ filter:invert(1); }
+  }
+  :root[data-theme="dark"] .crest img,
+  :root[data-theme="dark"] .tb-logo{ filter:invert(1); }
+  .wordmark{
+    font-size:.72rem;
+    font-weight:600;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+  }
+  .gate-title{
+    font-size:clamp(2.2rem,6vw,3.6rem);
+    font-weight:700;
+    letter-spacing:-.02em;
+    line-height:1.05;
+    max-width:16ch;
+  }
+  .gate-sub{
+    max-width:44ch;
+    margin-inline:auto;
+    color:var(--muted);
+    font-size:1rem;
+    line-height:1.5;
+    text-align:center;
+    text-wrap:balance;
+  }
+  .lang-row{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    width:100%;
+    max-width:440px;
+    margin-top:8px;
+  }
+  .lang-card{
+    appearance:none;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+    border-radius:18px;
+    padding:20px 22px;
+    width:100%;
+    cursor:pointer;
+    text-align:left;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    transition:border-color .18s ease, transform .18s ease, box-shadow .18s ease;
+  }
+  .lang-card:hover{border-color:var(--accent); box-shadow:0 6px 20px -12px rgba(0,0,0,.25); transform:translateY(-1px);}
+  .lang-card:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+  .lang-card .lc-text{ display:flex; flex-direction:column; gap:4px; }
+  .lang-card .lc-name{font-size:1.06rem; font-weight:700;}
+  .lang-card .lc-sub{font-size:.83rem; color:var(--muted);}
+  .lang-card .lc-arrow{ color:var(--muted); flex-shrink:0; }
+  .bookend-foot{
+    font-size:.76rem;
+    color:var(--muted);
+    letter-spacing:.02em;
+  }
+
+  /* ---------- App shell ---------- */
+  .app{ display:none; min-height:100svh; flex-direction:column; }
+  .app.active{ display:flex; }
+
+  .topbar{
+    position:sticky; top:env(safe-area-inset-top,0px);
+    z-index:10;
+    background:color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+    padding:14px 20px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .tb-brand{ display:flex; align-items:center; gap:10px; }
+  .tb-logo{ height:24px; width:auto; display:block; }
+
+  .steps-dots{ display:flex; align-items:center; gap:8px; }
+  .step-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--line);
+    transition:background .2s ease, transform .2s ease;
+  }
+  .step-dot.done{ background:var(--accent); }
+  .step-dot.now{ background:var(--accent); transform:scale(1.5); }
+  .step-label{ font-size:.72rem; color:var(--muted); font-weight:500; min-width:64px; text-align:right;}
+  @media (max-width:480px){
+    .tb-logo{ height:18px; }
+    .step-label{ display:none; }
+  }
+
+  .lang-pill{
+    display:flex; border:1px solid var(--line); border-radius:999px; overflow:hidden; flex-shrink:0;
+  }
+  .lang-pill button{
+    border:0; background:transparent; color:var(--muted);
+    font-size:.68rem; font-weight:700; letter-spacing:.06em;
+    padding:6px 11px; cursor:pointer;
+  }
+  .lang-pill button.on{ background:var(--ink); color:var(--paper); }
+
+  main.step-viewport{ flex:1; display:flex; justify-content:center; padding:52px 20px 40px; }
+  .step-col{ width:100%; max-width:640px; }
+
+  .step-head{ margin-bottom:34px; }
+  .step-head h2{ font-size:clamp(1.7rem,4.2vw,2.35rem); font-weight:700; letter-spacing:-.01em; margin-top:8px;}
+  .step-head p{ color:var(--muted); font-size:1rem; margin-top:10px; line-height:1.5; max-width:52ch;}
+
+  .panel{ display:none; }
+  .panel.active{ display:block; animation:rise .38s ease both; }
+  @keyframes rise{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:none;} }
+  @media (prefers-reduced-motion:reduce){ .panel.active{animation:none;} }
+
+  /* service cards */
+  .service-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:520px){ .service-grid{ grid-template-columns:1fr; } }
+  .svc{
+    position:relative;
+    border:1px solid var(--line);
+    background:var(--surface);
+    border-radius:18px;
+    padding:20px;
+    text-align:left;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    transition:border-color .16s ease, box-shadow .16s ease, background .16s ease;
+  }
+  .svc:hover{ border-color:color-mix(in srgb, var(--accent) 45%, var(--line)); }
+  .svc:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .svc[aria-pressed="true"]{
+    border-color:var(--accent);
+    box-shadow:0 0 0 1px var(--accent);
+    background:color-mix(in srgb, var(--accent) 6%, var(--surface));
+  }
+  .svc-icon{
+    width:40px;height:40px;border-radius:11px;
+    display:flex;align-items:center;justify-content:center;
+    background:var(--paper);
+    border:1px solid var(--line);
+    color:var(--ink);
+    flex-shrink:0;
+  }
+  .svc[aria-pressed="true"] .svc-icon{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+  .svc-name{ font-size:1.02rem; font-weight:700; letter-spacing:-.005em; }
+  .svc-desc{ font-size:.85rem; color:var(--muted); line-height:1.4; }
+  .svc-check{
+    position:absolute; top:16px; right:16px;
+    width:18px;height:18px;border-radius:50%;
+    border:1.3px solid var(--line);
+    background:var(--surface);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .svc[aria-pressed="true"] .svc-check{ background:var(--accent); border-color:var(--accent); }
+  .svc-check svg{ width:11px;height:11px; opacity:0; }
+  .svc[aria-pressed="true"] .svc-check svg{ opacity:1; }
+
+  /* form fields */
+  .field{ display:flex; flex-direction:column; gap:7px; margin-bottom:18px; }
+  .field label{ font-size:.76rem; font-weight:600; letter-spacing:.03em; color:var(--muted); }
+  .req{ color:var(--accent); }
+  .field input, .field select{
+    border:1px solid transparent;
+    background:var(--field-bg);
+    color:var(--ink);
+    border-radius:12px;
+    padding:13px 14px;
+    font-size:1rem;
+    outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease;
+    width:100%;
+    appearance:none;
+    -webkit-appearance:none;
+  }
+  .field select{
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%236e6e73' stroke-width='1.6'%3E%3Cpath d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center; background-size:18px;
+    padding-right:38px;
+  }
+  .field input:focus, .field select:focus{ border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent); }
+  .field-row{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:520px){ .field-row{ grid-template-columns:1fr; } }
+
+  .summary-chips{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:28px; }
+  .chip{
+    border:1px solid var(--line);
+    background:var(--surface);
+    border-radius:999px;
+    padding:7px 13px;
+    font-size:.78rem;
+    font-weight:600;
+    color:var(--ink);
+    display:flex; align-items:center; gap:6px;
+  }
+  .chip::before{ content:""; width:6px;height:6px;border-radius:50%; background:var(--accent); flex-shrink:0; }
+
+  .step-actions{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:30px; }
+  .btn{
+    appearance:none; border:0; cursor:pointer;
+    border-radius:999px;
+    padding:14px 28px;
+    font-size:.92rem;
+    font-weight:700;
+    letter-spacing:.01em;
+    transition:opacity .15s ease, transform .15s ease, background .15s ease;
+  }
+  .btn:active{ transform:scale(.98); }
+  .btn-primary{ background:var(--accent); color:#fff; }
+  .btn-primary:disabled{ opacity:.35; cursor:not-allowed; }
+  .btn-primary:not(:disabled):hover{ background:color-mix(in srgb, var(--accent) 85%, black); }
+  .btn-ghost{ background:transparent; color:var(--ink); padding:14px 6px; display:flex; align-items:center; gap:6px; }
+  .btn-ghost:hover{ color:var(--accent); }
+  .btn-ghost svg{ width:16px;height:16px; }
+
+  .hint{ font-size:.78rem; color:var(--muted); margin-top:-6px; margin-bottom:20px; }
+
+  /* thank-you recap */
+  .recap{
+    border:1px solid var(--line);
+    background:var(--surface);
+    border-radius:18px;
+    padding:22px 24px;
+    text-align:left;
+    max-width:420px;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .recap-row{ display:flex; justify-content:space-between; gap:16px; font-size:.86rem; }
+  .recap-row .rk{ color:var(--muted); }
+  .recap-row .rv{ font-weight:600; text-align:right; }
+
+  .footnote{ font-size:.72rem; color:var(--muted); text-align:center; margin-top:36px; letter-spacing:.02em; }
+
+  [hidden]{ display:none !important; }
+</style>
+
+<!-- ============ GATE ============ -->
+<section class="bookend" id="gate">
+  <div class="crest"><img src="fm-logo.png" alt="Francorchamps Motors — Official Ferrari Dealer"></div>
+  <div>
+    <h1 class="gate-title">Ferrari During Winter</h1>
+    <p class="gate-sub" style="margin-top:14px;">Choisissez votre langue pour démarrer votre demande de devis.<br>Kies uw taal om uw offerteaanvraag te starten.</p>
+  </div>
+  <div class="lang-row">
+    <button class="lang-card" id="pick-fr" type="button">
+      <span class="lc-text"><span class="lc-name">Français</span><span class="lc-sub">Continuer en français</span></span>
+      <svg class="lc-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="lang-card" id="pick-nl" type="button">
+      <span class="lc-text"><span class="lc-name">Nederlands</span><span class="lc-sub">Doorgaan in het Nederlands</span></span>
+      <svg class="lc-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+  <div class="bookend-foot">Concessionnaire Officiel Ferrari · Officiële Ferrari Dealer — Belgique / België</div>
+</section>
+
+<!-- ============ APP ============ -->
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="tb-brand">
+      <img class="tb-logo" src="fm-logo.png" alt="Francorchamps Motors">
+    </div>
+    <div style="display:flex; align-items:center; gap:16px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div class="steps-dots" aria-hidden="true">
+          <div class="step-dot" data-dot="1"></div>
+          <div class="step-dot" data-dot="2"></div>
+          <div class="step-dot" data-dot="3"></div>
+        </div>
+        <div class="step-label" id="stepLabel"></div>
+      </div>
+      <div class="lang-pill">
+        <button type="button" id="tb-fr">FR</button>
+        <button type="button" id="tb-nl">NL</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="step-viewport">
+    <div class="step-col">
+
+      <!-- STEP 1 : SERVICES -->
+      <section class="panel" id="panel-1">
+        <div class="step-head">
+          <div class="eyebrow" data-i18n="s1Eyebrow"></div>
+          <h2 data-i18n="s1Title"></h2>
+          <p data-i18n="s1Sub"></p>
+        </div>
+
+        <div class="service-grid" id="serviceGrid">
+          <button class="svc" type="button" data-svc="kit" aria-pressed="false">
+            <div class="svc-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L19 7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="svc-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="12" cy="12" r="7.5"/>
+                <circle cx="12" cy="12" r="2.6"/>
+                <path d="M12 4.5v2.2M12 17.3v2.2M4.5 12h2.2M17.3 12h2.2M6.6 6.6l1.6 1.6M15.8 15.8l1.6 1.6M17.4 6.6l-1.6 1.6M8.2 15.8l-1.6 1.6" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="svc-name" data-i18n="svcKitName"></div>
+            <div class="svc-desc" data-i18n="svcKitDesc"></div>
+          </button>
+
+          <button class="svc" type="button" data-svc="tires" aria-pressed="false">
+            <div class="svc-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L19 7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="svc-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="12" cy="12" r="7.5"/>
+                <path d="M12 6v2.6M12 15.4V18M18 12h-2.6M8.6 12H6M16.2 7.8l-1.8 1.8M9.6 14.4l-1.8 1.8M16.2 16.2l-1.8-1.8M9.6 9.6L7.8 7.8" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="svc-name" data-i18n="svcTiresName"></div>
+            <div class="svc-desc" data-i18n="svcTiresDesc"></div>
+          </button>
+
+          <button class="svc" type="button" data-svc="charger" aria-pressed="false">
+            <div class="svc-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L19 7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="svc-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <rect x="5" y="4" width="14" height="16" rx="3"/>
+                <path d="M13 8.2 9.3 13.1h3.1L11 16.8l4.6-5.3h-3.1L14 8.2z" fill="currentColor" stroke="none"/>
+              </svg>
+            </div>
+            <div class="svc-name" data-i18n="svcChargerName"></div>
+            <div class="svc-desc" data-i18n="svcChargerDesc"></div>
+          </button>
+
+          <button class="svc" type="button" data-svc="cradle" aria-pressed="false">
+            <div class="svc-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L19 7" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="svc-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                <circle cx="12" cy="10.2" r="4.4"/>
+                <path d="M4 18.5c1.6-2 4.8-2 6-2h4c1.2 0 5.4 0 6 2M4 21.2c1.6-2 4.8-2 6-2h4c1.2 0 5.4 0 6 2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="svc-name" data-i18n="svcCradleName"></div>
+            <div class="svc-desc" data-i18n="svcCradleDesc"></div>
+          </button>
+        </div>
+
+        <div class="step-actions" style="justify-content:flex-end;">
+          <button class="btn btn-primary" id="next1" type="button" disabled data-i18n="btnNext"></button>
+        </div>
+      </section>
+
+      <!-- STEP 2 : MODEL -->
+      <section class="panel" id="panel-2">
+        <div class="step-head">
+          <div class="eyebrow" data-i18n="s2Eyebrow"></div>
+          <h2 data-i18n="s2Title"></h2>
+          <p data-i18n="s2Sub"></p>
+        </div>
+
+        <div class="field">
+          <label for="model"><span data-i18n="modelLabel"></span> <span class="req">*</span></label>
+          <input type="text" id="model" autocomplete="off" data-i18n-ph="modelPlaceholder">
+        </div>
+
+        <div class="step-actions">
+          <button class="btn btn-ghost" id="back2" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span data-i18n="btnBack"></span>
+          </button>
+          <button class="btn btn-primary" id="next2" type="button" disabled data-i18n="btnNext"></button>
+        </div>
+      </section>
+
+      <!-- STEP 3 : CONTACT -->
+      <section class="panel" id="panel-3">
+        <div class="step-head">
+          <div class="eyebrow" data-i18n="s3Eyebrow"></div>
+          <h2 data-i18n="s3Title"></h2>
+          <p data-i18n="s3Sub"></p>
+        </div>
+
+        <div class="summary-chips" id="summaryChips"></div>
+
+        <form id="contactForm">
+          <div class="field-row">
+            <div class="field">
+              <label for="firstName"><span data-i18n="firstNameLabel"></span> <span class="req">*</span></label>
+              <input type="text" id="firstName" autocomplete="given-name" required>
+            </div>
+            <div class="field">
+              <label for="lastName"><span data-i18n="lastNameLabel"></span> <span class="req">*</span></label>
+              <input type="text" id="lastName" autocomplete="family-name" required>
+            </div>
+          </div>
+          <div class="field">
+            <label for="email"><span data-i18n="emailLabel"></span> <span class="req">*</span></label>
+            <input type="email" id="email" autocomplete="email" required>
+          </div>
+          <div class="field">
+            <label for="phone"><span data-i18n="phoneLabel"></span> <span class="req">*</span></label>
+            <input type="tel" id="phone" autocomplete="tel" required placeholder="+32 4xx xx xx xx">
+          </div>
+
+          <div class="step-actions">
+            <button class="btn btn-ghost" id="back3" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span data-i18n="btnBack"></span>
+            </button>
+            <button class="btn btn-primary" id="submitForm" type="submit" disabled data-i18n="btnSubmit"></button>
+          </div>
+          <p class="hint" id="submitError" style="color:var(--accent); text-align:right; margin-top:12px;" hidden></p>
+        </form>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- ============ THANK YOU ============ -->
+<section class="bookend" id="thanks" hidden>
+  <div class="crest"><img src="fm-logo.png" alt="Francorchamps Motors — Official Ferrari Dealer"></div>
+  <div>
+    <h1 class="gate-title" data-i18n="thanksTitle"></h1>
+    <p class="gate-sub" style="margin-top:14px;" data-i18n="thanksBody"></p>
+  </div>
+
+  <div class="recap" id="thanksRecap"></div>
+
+  <button class="btn btn-primary" id="restart" type="button">
+    <span data-i18n="btnRestart"></span>
+  </button>
+
+  <div class="bookend-foot">Concessionnaire Officiel Ferrari · Officiële Ferrari Dealer — Belgique / België</div>
+</section>
+
+<script>
+(function(){
+  "use strict";
+
+  var T = {
+    fr: {
+      topTagline: "",
+      s1Eyebrow: "Étape 1 sur 3",
+      s1Title: "Sélectionnez vos services",
+      s1Sub: "Choisissez une ou plusieurs prestations. Nous établirons un devis personnalisé pour votre Ferrari.",
+      svcKitName: "Kit pneus hiver",
+      svcKitDesc: "Pneus hiver montés sur jantes dédiées, prêts à chausser.",
+      svcTiresName: "Pneus hiver",
+      svcTiresDesc: "Pneus hiver seuls, à monter sur vos jantes actuelles.",
+      svcChargerName: "Chargeur",
+      svcChargerDesc: "Chargeur mural ou portable pour votre Ferrari hybride.",
+      svcCradleName: "Tire Cradle",
+      svcCradleDesc: "Système de stockage qui préserve la forme de vos pneus.",
+      s2Eyebrow: "Étape 2 sur 3",
+      s2Title: "Votre Ferrari",
+      s2Sub: "Indiquez le modèle concerné par cette demande de devis.",
+      modelLabel: "Modèle",
+      modelPlaceholder: "ex. 296 GTB",
+      s3Eyebrow: "Étape 3 sur 3",
+      s3Title: "Vos coordonnées",
+      s3Sub: "Dernière étape : laissez-nous vos coordonnées, nous vous recontactons rapidement.",
+      firstNameLabel: "Prénom",
+      lastNameLabel: "Nom",
+      emailLabel: "E-mail",
+      phoneLabel: "Téléphone",
+      btnNext: "Continuer",
+      btnBack: "Retour",
+      btnSubmit: "Envoyer ma demande",
+      btnSending: "Envoi en cours…",
+      errorMsg: "L'envoi a échoué. Merci de réessayer.",
+      btnRestart: "Nouvelle demande",
+      stepLabelFmt: "Étape {n}/3",
+      thanksTitle: "Merci.",
+      thanksBody: "Votre demande a bien été reçue. Notre équipe vous recontacte avec un devis personnalisé dans les plus brefs délais.",
+      recapServices: "Services",
+      recapModel: "Modèle",
+      recapName: "Contact"
+    },
+    nl: {
+      topTagline: "",
+      s1Eyebrow: "Stap 1 van 3",
+      s1Title: "Selecteer uw diensten",
+      s1Sub: "Kies een of meerdere diensten. Wij stellen een persoonlijke offerte op voor uw Ferrari.",
+      svcKitName: "Winterbandenkit",
+      svcKitDesc: "Winterbanden gemonteerd op eigen velgen, klaar om te plaatsen.",
+      svcTiresName: "Winterbanden",
+      svcTiresDesc: "Losse winterbanden voor montage op uw huidige velgen.",
+      svcChargerName: "Lader",
+      svcChargerDesc: "Wand- of portable lader voor uw hybride Ferrari.",
+      svcCradleName: "Tire Cradle",
+      svcCradleDesc: "Opbergsysteem dat de vorm van uw banden beschermt.",
+      s2Eyebrow: "Stap 2 van 3",
+      s2Title: "Uw Ferrari",
+      s2Sub: "Geef het model op waarvoor u deze offerteaanvraag doet.",
+      modelLabel: "Model",
+      modelPlaceholder: "bv. 296 GTB",
+      s3Eyebrow: "Stap 3 van 3",
+      s3Title: "Uw gegevens",
+      s3Sub: "Laatste stap: bezorg ons uw gegevens, wij nemen snel contact met u op.",
+      firstNameLabel: "Voornaam",
+      lastNameLabel: "Naam",
+      emailLabel: "E-mail",
+      phoneLabel: "Telefoon",
+      btnNext: "Doorgaan",
+      btnBack: "Terug",
+      btnSubmit: "Vraag versturen",
+      btnSending: "Bezig met verzenden…",
+      errorMsg: "Verzenden mislukt. Probeer het opnieuw.",
+      btnRestart: "Nieuwe aanvraag",
+      stepLabelFmt: "Stap {n}/3",
+      thanksTitle: "Bedankt.",
+      thanksBody: "Uw aanvraag is goed ontvangen. Ons team neemt binnenkort contact met u op met een persoonlijke offerte.",
+      recapServices: "Diensten",
+      recapModel: "Model",
+      recapName: "Contact"
+    }
+  };
+
+  var state = {
+    lang: null,
+    step: 1,
+    services: new Set(),
+    model: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: ""
+  };
+
+  var gate = document.getElementById("gate");
+  var app = document.getElementById("app");
+  var thanks = document.getElementById("thanks");
+
+  function t(key){
+    var dict = T[state.lang] || T.fr;
+    return dict[key] !== undefined ? dict[key] : key;
+  }
+
+  function applyLang(){
+    document.querySelectorAll("[data-i18n]").forEach(function(el){
+      el.textContent = t(el.getAttribute("data-i18n"));
+    });
+    document.querySelectorAll("[data-i18n-ph]").forEach(function(el){
+      el.setAttribute("placeholder", t(el.getAttribute("data-i18n-ph")));
+    });
+    document.getElementById("tb-fr").classList.toggle("on", state.lang === "fr");
+    document.getElementById("tb-nl").classList.toggle("on", state.lang === "nl");
+    updateStepLabel();
+    updateSummaryChips();
+  }
+
+  function updateStepLabel(){
+    var lbl = t("stepLabelFmt").replace("{n}", state.step);
+    document.getElementById("stepLabel").textContent = lbl;
+    for (var i = 1; i <= 3; i++){
+      var dot = document.querySelector('[data-dot="' + i + '"]');
+      dot.classList.remove("done", "now");
+      if (i < state.step) dot.classList.add("done");
+      if (i === state.step) dot.classList.add("now");
+    }
+  }
+
+  function showPanel(n){
+    state.step = n;
+    document.querySelectorAll(".panel").forEach(function(p){ p.classList.remove("active"); });
+    document.getElementById("panel-" + n).classList.add("active");
+    updateStepLabel();
+    window.scrollTo({top:0, behavior:"instant"});
+  }
+
+  function startApp(lang){
+    state.lang = lang;
+    applyLang();
+    gate.style.display = "none";
+    app.classList.add("active");
+    showPanel(1);
+  }
+
+  document.getElementById("pick-fr").addEventListener("click", function(){ startApp("fr"); });
+  document.getElementById("pick-nl").addEventListener("click", function(){ startApp("nl"); });
+  document.getElementById("tb-fr").addEventListener("click", function(){ state.lang = "fr"; applyLang(); });
+  document.getElementById("tb-nl").addEventListener("click", function(){ state.lang = "nl"; applyLang(); });
+
+  /* ---- Step 1 : services ---- */
+  var serviceLabels = {
+    kit: {fr:"Kit pneus hiver", nl:"Winterbandenkit"},
+    tires: {fr:"Pneus hiver", nl:"Winterbanden"},
+    charger: {fr:"Chargeur", nl:"Lader"},
+    cradle: {fr:"Tire Cradle", nl:"Tire Cradle"}
+  };
+
+  document.querySelectorAll(".svc").forEach(function(card){
+    card.addEventListener("click", function(){
+      var key = card.getAttribute("data-svc");
+      var pressed = card.getAttribute("aria-pressed") === "true";
+      card.setAttribute("aria-pressed", String(!pressed));
+      if (pressed) state.services.delete(key); else state.services.add(key);
+      document.getElementById("next1").disabled = state.services.size === 0;
+    });
+  });
+
+  document.getElementById("next1").addEventListener("click", function(){ showPanel(2); });
+
+  /* ---- Step 2 : model ---- */
+  var modelInput = document.getElementById("model");
+  var next2 = document.getElementById("next2");
+
+  function validateStep2(){
+    next2.disabled = modelInput.value.trim().length === 0;
+  }
+  modelInput.addEventListener("input", validateStep2);
+
+  document.getElementById("back2").addEventListener("click", function(){ showPanel(1); });
+  document.getElementById("next2").addEventListener("click", function(){
+    state.model = modelInput.value.trim();
+    updateSummaryChips();
+    showPanel(3);
+  });
+
+  /* ---- Step 3 : contact ---- */
+  var firstName = document.getElementById("firstName");
+  var lastName = document.getElementById("lastName");
+  var email = document.getElementById("email");
+  var phone = document.getElementById("phone");
+  var submitBtn = document.getElementById("submitForm");
+
+  function validateStep3(){
+    var emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value.trim());
+    var phoneOk = phone.value.trim().length >= 6;
+    var ok = firstName.value.trim().length > 0 &&
+             lastName.value.trim().length > 0 &&
+             emailOk && phoneOk;
+    submitBtn.disabled = !ok;
+  }
+  [firstName, lastName, email, phone].forEach(function(el){
+    el.addEventListener("input", validateStep3);
+  });
+
+  document.getElementById("back3").addEventListener("click", function(){ showPanel(2); });
+
+  function updateSummaryChips(){
+    var wrap = document.getElementById("summaryChips");
+    wrap.innerHTML = "";
+    state.services.forEach(function(key){
+      var chip = document.createElement("div");
+      chip.className = "chip";
+      chip.textContent = serviceLabels[key][state.lang] || serviceLabels[key].fr;
+      wrap.appendChild(chip);
+    });
+    if (state.model){
+      var chip2 = document.createElement("div");
+      chip2.className = "chip";
+      chip2.textContent = state.model;
+      wrap.appendChild(chip2);
+    }
+  }
+
+  var FORM_ENDPOINT = "https://formspree.io/f/mgavrezp";
+  var errorBox = document.getElementById("submitError");
+
+  document.getElementById("contactForm").addEventListener("submit", function(e){
+    e.preventDefault();
+    if (submitBtn.disabled) return;
+    state.firstName = firstName.value.trim();
+    state.lastName = lastName.value.trim();
+    state.email = email.value.trim();
+    state.phone = phone.value.trim();
+
+    var svcNames = Array.from(state.services).map(function(k){ return serviceLabels[k][state.lang] || serviceLabels[k].fr; }).join(", ");
+    var payload = new FormData();
+    payload.append("Prénom / Voornaam", state.firstName);
+    payload.append("Nom / Naam", state.lastName);
+    payload.append("Email", state.email);
+    payload.append("Téléphone / Telefoon", state.phone);
+    payload.append("Modèle Ferrari / Model", state.model);
+    payload.append("Services demandés / Gevraagde diensten", svcNames);
+    payload.append("Langue / Taal", state.lang);
+    payload.append("_subject", "Nouvelle demande de devis hiver — " + state.firstName + " " + state.lastName);
+
+    submitBtn.disabled = true;
+    errorBox.hidden = true;
+    var restoreLabel = submitBtn.textContent;
+    submitBtn.textContent = t("btnSending");
+
+    fetch(FORM_ENDPOINT, {
+      method: "POST",
+      headers: { "Accept": "application/json" },
+      body: payload
+    }).then(function(res){
+      if (res.ok) {
+        showThanks();
+      } else {
+        throw new Error("submit-failed");
+      }
+    }).catch(function(){
+      submitBtn.disabled = false;
+      submitBtn.textContent = restoreLabel;
+      errorBox.textContent = t("errorMsg");
+      errorBox.hidden = false;
+    });
+  });
+
+  function showThanks(){
+    app.classList.remove("active");
+    thanks.hidden = false;
+    applyLang();
+    var recap = document.getElementById("thanksRecap");
+    var svcNames = Array.from(state.services).map(function(k){ return serviceLabels[k][state.lang] || serviceLabels[k].fr; }).join(" · ");
+    recap.innerHTML =
+      '<div class="recap-row"><span class="rk">' + t("recapServices") + '</span><span class="rv">' + svcNames + '</span></div>' +
+      '<div class="recap-row"><span class="rk">' + t("recapModel") + '</span><span class="rv">' + state.model + '</span></div>' +
+      '<div class="recap-row"><span class="rk">' + t("recapName") + '</span><span class="rv">' + state.firstName + ' ' + state.lastName + '</span></div>';
+  }
+
+  document.getElementById("restart").addEventListener("click", function(){
+    state.services.clear();
+    state.model = "";
+    document.querySelectorAll(".svc").forEach(function(c){ c.setAttribute("aria-pressed","false"); });
+    document.getElementById("next1").disabled = true;
+    modelInput.value = "";
+    next2.disabled = true;
+    firstName.value = ""; lastName.value = ""; email.value = ""; phone.value = "";
+    submitBtn.disabled = true;
+    errorBox.hidden = true;
+    thanks.hidden = true;
+    gate.style.display = "flex";
+    showPanel(1);
+  });
+
+})();
+</script>
