@@ -736,6 +736,7 @@
     }
   }
 
+  var NOTION_ENDPOINT = "/api/devis";
   var FORM_ENDPOINT = "https://formspree.io/f/mgavrezp";
   var errorBox = document.getElementById("submitError");
 
@@ -763,16 +764,33 @@
     var restoreLabel = submitBtn.textContent;
     submitBtn.textContent = t("btnSending");
 
-    fetch(FORM_ENDPOINT, {
+    var notionBody = {
+      firstName: state.firstName,
+      lastName: state.lastName,
+      email: state.email,
+      phone: state.phone,
+      model: state.model,
+      services: Array.from(state.services),
+      lang: state.lang
+    };
+
+    // 1) Notion via la fonction Vercel /api/devis ; 2) Formspree en secours si elle est indisponible
+    fetch(NOTION_ENDPOINT, {
       method: "POST",
-      headers: { "Accept": "application/json" },
-      body: payload
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(notionBody)
     }).then(function(res){
-      if (res.ok) {
-        showThanks();
-      } else {
-        throw new Error("submit-failed");
-      }
+      if (!res.ok) throw new Error("notion-failed");
+    }).catch(function(){
+      return fetch(FORM_ENDPOINT, {
+        method: "POST",
+        headers: { "Accept": "application/json" },
+        body: payload
+      }).then(function(res){
+        if (!res.ok) throw new Error("submit-failed");
+      });
+    }).then(function(){
+      showThanks();
     }).catch(function(){
       submitBtn.disabled = false;
       submitBtn.textContent = restoreLabel;
