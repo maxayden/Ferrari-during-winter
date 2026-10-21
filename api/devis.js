@@ -46,6 +46,7 @@ module.exports = async function handler(req, res) {
       properties: {
         Client: { title: [{ text: { content: `${firstName} ${lastName}` } }] },
         Statut: { select: { name: "Nouveau" } },
+        Sujet: { select: { name: "Ferrari During Winter" } },
         Services: { multi_select: services.map((name) => ({ name })) },
         "Modèle Ferrari": { rich_text: [{ text: { content: model } }] },
         Email: { email },
